@@ -16,11 +16,12 @@ class DisplayLocationViewController: UIViewController {
     @IBOutlet weak var allowPermissionLabel: UILabel!
     @IBOutlet weak var mapView: MKMapView!
     
-    let updateInterval = 5.0
+    let updateInterval = 300.0
     var isFirstUpdate = true
     var latestLocation: CLLocation = CLLocation()
-    
+    let fileName = "locations.txt"
     private var locationManager: CLLocationManager?
+    var timer = Timer()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -65,7 +66,13 @@ class DisplayLocationViewController: UIViewController {
     @IBAction func logoutBtnTapped(_ sender: Any) {
         // resetting all user data and moving back to login screen
         UserDefaults.standard.resetKeys()
-        
+        timer.invalidate()
+        // clearing the locations.txt file
+        do {
+            try "".write(to: getDocumentsDirectory().appendingPathComponent(fileName), atomically: false, encoding: .utf8)
+        } catch {
+            print(error.localizedDescription)
+        }
         let userDetailsVC = UserDetailsViewController()
         userDetailsVC.modalPresentationStyle = .fullScreen
         userDetailsVC.modalTransitionStyle = .crossDissolve
@@ -101,7 +108,8 @@ class DisplayLocationViewController: UIViewController {
 
 extension DisplayLocationViewController: CLLocationManagerDelegate {
     func addTimerForFileUpdates(time: TimeInterval) {
-        let _ = Timer.scheduledTimer(timeInterval: time,
+        timer.invalidate()
+        timer = Timer.scheduledTimer(timeInterval: time,
                                      target: self,
                                      selector: #selector(handleUpdates(timer:)),
                                      userInfo: nil,
